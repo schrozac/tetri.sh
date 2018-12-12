@@ -3,6 +3,8 @@ A Tetris clone in Bash
 
 Unfinished but playable I guess
 
+![DT cannons are pretty rad](https://github.com/ZachS790/tetri.sh/blob/master/sample.gif)
+
 #### Controls
 + **A**/**D** - Left/right movement
 + **W** - Hard drop
