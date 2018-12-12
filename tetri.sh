@@ -78,25 +78,34 @@ SPIN_SCALES=( 1 1 -1 -1 -1 1 1 -1 )
 NUM_PIECES=$((${#PIECE_DESCRIPTORS[@]} / $DESCRIPTOR_SIZE))
 COLOR=${PIECE_DESCRIPTORS[0]}
 ALT_COLOR=231
+xset_exists=1
 
 # ===========
 #  FUNCTIONS
 # ===========
 
+checkXSet() {
+    command -v xset
+}
+
 resetKeys() {
-	xset r 45
-	xset r 46
-	xset r 25
-	xset r 65
-	xset r rate
+    if [[ $xset_exists -eq 0 ]]; then
+        xset r 45
+        xset r 46
+        xset r 25
+        xset r 65
+        xset r rate
+    fi
 }
 
 setKeys() {
-	xset r rate $REPEAT_DELAY $REPEAT_RATE
-	xset -r 45
-	xset -r 46
-	xset -r 25
-	xset -r 65
+    if [[ $xset_exists -eq 0 ]]; then
+        xset r rate $REPEAT_DELAY $REPEAT_RATE
+        xset -r 45
+        xset -r 46
+        xset -r 25
+        xset -r 65
+    fi
 }
 
 lowestPosition() {
@@ -545,6 +554,9 @@ hold() {
 # ======
 
 clear
+
+checkXSet
+xset_exists=$?
 
 # Draw playfield
 draw_box 1 15 22 22 100
