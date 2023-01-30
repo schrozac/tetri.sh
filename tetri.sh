@@ -129,7 +129,7 @@ index() {
 
 # Draw $3 at row $1, col $2
 plot_char(){     
-   	echo -e "\E[${1};${2}H"$3
+   	echo -e "\033[${1};${2}H"$3
 }
 
 plot() {
@@ -137,16 +137,16 @@ plot() {
 	PLOT_C=$((2 * ($2 + $COL_OFFSET)))
 	if [[ $PLOT_C -ge 0 && $PLOT_R -ge 2 ]]; then
 		if [[ $3 -gt 0 ]]; then
-			echo -en "\e[0m\e[1;38;5;${ALT_COLOR}m"
-	   		echo -e "\e[$3m\E[${PLOT_R};${PLOT_C}H$4"
+			echo -en "\033[0m\033[1;38;5;${ALT_COLOR}m"
+       		echo -e "\033[$3m\033[${PLOT_R};${PLOT_C}H$4"
 		else
-	   		echo -e "\e[0m\E[${PLOT_R};${PLOT_C}H  "
+       		echo -e "\033[0m\033[${PLOT_R};${PLOT_C}H  "
 		fi
 	fi
 }
 
 drawText() {
-	STR=$(TEXT[@]:$1:1)
+	STR="${TEXT[@]:$1:1}"
 	getAltColor 0
 	plot $TEXT_R $TEXT_C 1 "$STR"
 }
@@ -473,7 +473,7 @@ draw_box() {
 	T_ROWS=`tput lines`        #  Define current terminal dimension 
 	T_COLS=200                                # End checking arguments.
 
-	echo -ne "\E[3${5}m"               # Set box frame color, if defined.
+	echo -ne "\033[3${5}m"               # Set box frame color, if defined.
 
 	count=1                                         #  Draw vertical lines using
 	for (( r=$1; count<=$BOX_HEIGHT; r++)); do      #+ plot_char function.
@@ -505,10 +505,10 @@ draw_box() {
 	plot_char $1 `expr $2 + $BOX_WIDTH` $CORNER_CHAR
 	plot_char `expr $1 + $BOX_HEIGHT` $2 $CORNER_CHAR
 	plot_char `expr $1 + $BOX_HEIGHT` `expr $2 + $BOX_WIDTH` $CORNER_CHAR
-	echo -ne "\E[0m"             #  Restore old colors.
+	echo -ne "\033[0m"             #  Restore old colors.
 
 	P_ROWS=`expr $T_ROWS - 1`    #  Put the prompt at bottom of the terminal.
-	echo -e "\E[${P_ROWS};1H"
+	echo -e "\033[${P_ROWS};1H"
 }
 
 drawCells() {
@@ -712,4 +712,4 @@ done
 resetKeys
 
 # Reset color
-echo -e "\e(B\e[m"
+echo -e "\033(B\033[m"
