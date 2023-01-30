@@ -54,6 +54,8 @@ fi
 
 VALID=1
 
+BAG=()
+BAG_SHUFFLES=20
 
 # ========
 #  PIECES 
@@ -144,7 +146,7 @@ plot() {
 }
 
 drawText() {
-	STR=${TEXT[${1}]}
+	STR=$(TEXT[@]:$1:1)
 	getAltColor 0
 	plot $TEXT_R $TEXT_C 1 "$STR"
 }
@@ -311,7 +313,7 @@ getAltColor() {
 }
 
 getColor() {
-	COLOR=${PIECE_DESCRIPTORS[$(($1 * $DESCRIPTOR_SIZE))]}
+	COLOR=${PIECE_DESCRIPTORS[@]:$(( $1*$DESCRIPTOR_SIZE )):1}
 	getAltColor $COLOR
 }
 
@@ -322,20 +324,42 @@ resetPiece() {
 	LOCK_COUNTER=-1
 }
 
+shuffleBag(){
+	for ((j=0;j<300;j+=1)); do
+		swapPair
+	done
+}
+
+swapPair(){
+	index1=$((RANDOM%7))
+	index2=$((RANDOM%7))
+
+	if [ "$index1" = "$index2" ]; then
+		index2=$(( ($index1+1)%7 ))
+	fi
+
+	swapped=${BAG[@]:$index1:1}
+	BAG[$index1]=${BAG[@]:$index2:1}
+	BAG[$index2]=$swapped;
+}
+
 generateNewBag() {
-	for i in `shuf -i "0-$((NUM_PIECES-1))"`; do
+	BAG=(0 1 2 3 4 5 6)
+	shuffleBag
+
+	for i in ${BAG[@]}; do
 		addNextPiece $i
 	done
 }
 
 getNewPiece() {
 	# Get new piece
-	PIECE=${NEXT_PIECES[0]}
+	PIECE=${NEXT_PIECES[@]:0:1}
 	getColor $PIECE
 
 	# Shift next pieces
 	for ((i=1;i<${#NEXT_PIECES[@]};i++)); do
-		NEXT_PIECES[$(($i-1))]=${NEXT_PIECES[$i]}
+		NEXT_PIECES[$(($i-1))]=${NEXT_PIECES[@]:$i:1}
 	done
 	unset NEXT_PIECES[$((${#NEXT_PIECES[@]} - 1))]
 
@@ -492,7 +516,7 @@ drawCells() {
 	for ((i=0;i<200;i+=1)); do
 		r=$((($i / 10)))
 		c=$((($i % 10)))
-		value=${CELLS[$i]}
+		value=${CELLS[@]:$i:1}
 		if [[ $value -gt 0 ]]; then
 			getAltColor $value
 			plot $r $c $value $STYLE
@@ -527,12 +551,13 @@ drawCells() {
 	# Draw next pieces
 	NEXT_PIECE_OFFSET=3
 	for ((i=0; i < 5 && i < ${#NEXT_PIECES[@]};i+=1)); do
-		getColor ${NEXT_PIECES[$i]}
+		getColor ${NEXT_PIECES[@]:$i:1}
 		for ((j=0;j<4;j+=1)); do
 			getOffsets ${NEXT_PIECES[$i]} $j 0
 			plot $(($NEXT_R + $dx + $(($i * $NEXT_PIECE_OFFSET)))) $(($NEXT_C + $dy)) $COLOR $STYLE
 		done
 	done
+
 	getColor $PIECE
 }
 
@@ -545,6 +570,7 @@ hold() {
 	else
 		getNewPiece
 	fi
+
 	getColor $PIECE
 	lowestPosition
 }
@@ -619,7 +645,7 @@ while true; do
 		fi
 
 		plot $DEFAULT 1 0 $STYLE
-		read -s -N 1 -t 0.1 key
+		#read -s -N 1 -t 0.1 key
 
 		# Read keys
 		case "$key" in
