@@ -381,10 +381,12 @@ solidify() {
 		getOffsets $PIECE $j $ROTATION
 		index $(($CURSOR_R + $dx)) $(($CURSOR_C + $dy))
 
-		if [[ $GAMEOVER -eq 0 ]] && [[ $INDEX -lt 0 || $INDEX -gt 199 ]]; then
-			GAMEOVER=1
-			NEXT_PIECES=()
-			HOLD_PIECE=-1
+		if [[ $INDEX -lt 0 || $INDEX -gt 199 ]]; then
+			if [[ $GAMEOVER -eq 0 ]]; then
+				GAMEOVER=1
+				NEXT_PIECES=()
+				HOLD_PIECE=-1
+			fi
 		else
 			CELLS[$((INDEX))]=$COLOR
 		fi
@@ -616,7 +618,7 @@ while true; do
 			clearSide
 			getAltColor 0
 			plot 6 3 1 "GAME OVER"
-			sleep 1s
+			sleep 1
 		done	
 		plot $DEFAULT 1 0 $STYLE
 		break
