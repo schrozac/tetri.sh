@@ -648,6 +648,8 @@ while true; do
 		fi
 
 		plot $DEFAULT 1 0 $STYLE
+
+		key=''
 		read -s -n 1 -t 1 key
 
 		# Read keys
