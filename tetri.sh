@@ -645,7 +645,7 @@ while true; do
 		fi
 
 		plot $DEFAULT 1 0 $STYLE
-		#read -s -N 1 -t 0.1 key
+		read -s -n 1 -t 1 key
 
 		# Read keys
 		case "$key" in
