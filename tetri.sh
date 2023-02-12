@@ -157,7 +157,7 @@ getOffsets() {
 	x=${PIECE_DESCRIPTORS[$((($1 * $DESCRIPTOR_SIZE) + ($2 * 2) + 2))]}
 
 	# Build array of rotations
-	results=(x y y -x -x -y -y x)
+	results=($x $y $y $((x*-1)) $((x*-1)) $((y*-1)) $((y*-1)) $x)
 
 	dx=${results[$(($3 * 2))]}
 	dy=${results[$(($3 * 2 + 1))]}
