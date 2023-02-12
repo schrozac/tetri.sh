@@ -651,11 +651,11 @@ while true; do
 
 		plot $DEFAULT 1 0 $STYLE
 
-		key=''
-		read -s -n 1 -t 1 key
+		REPLY=''
+		read -s -n 1 -t 1
 
 		# Read keys
-		case "$key" in
+		case $REPLY in
 		    [Ww]) 
 				lowestPosition
 				CURSOR_R=$GHOST_R
