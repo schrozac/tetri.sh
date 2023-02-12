@@ -617,7 +617,6 @@ while true; do
 		for ((j=0;j<21;j+=1)); do
 			clearLine 20
 			drawCells
-			clearSide
 			getAltColor 0
 			plot 6 3 1 "GAME OVER"
 			movePromptToBottom
