@@ -373,6 +373,12 @@ addNextPiece() {
 	NEXT_PIECES[${#NEXT_PIECES[@]}]=$1
 }
 
+movePromptToBottom() {
+	T_ROWS=$(tput lines)
+	P_ROWS=$((T_ROWS - 1))
+	echo -e "\033[$((T_ROWS - 1));1H"
+}
+
 solidify() {
 	GAMEOVER=0
 
@@ -404,7 +410,7 @@ solidify() {
 }
 
 
-moveDown(){
+moveDown() {
 	CURSOR_R=$(($CURSOR_R + 1))
 	for ((j=0;j<4;j+=1)); do
 		getOffsets $PIECE $j $ROTATION
@@ -425,7 +431,7 @@ moveDown(){
 	fi 
 }
 
-clearLine(){
+clearLine() {
 	start=$(($1 * 10 + 9))
 	for ((i=$start;i>=10;i-=1)); do
 		CELLS[$i]=${CELLS[$(($i - 10))]};
@@ -435,7 +441,7 @@ clearLine(){
 	done
 }
 
-clearLines(){
+clearLines() {
 	NUM_CLEARED=0
 	for ((r=0;r<20;r+=1)); do
 		FULL=0
@@ -458,12 +464,6 @@ clearLines(){
 	if [[ $NUM_CLEARED -gt 0 ]]; then
 		drawCells
 	fi
-}
-
-clearSide() {
-	for ((i=0;i<=$DEFAULT;i+=1)); do
-		plot $i -8 0 $STYLE 
-	done
 }
 
 draw_box() {
@@ -510,8 +510,7 @@ draw_box() {
 	plot_char `expr $1 + $BOX_HEIGHT` `expr $2 + $BOX_WIDTH` $CORNER_CHAR
 	echo -ne "\033[0m"             #  Restore old colors.
 
-	P_ROWS=`expr $T_ROWS - 1`    #  Put the prompt at bottom of the terminal.
-	echo -e "\033[${P_ROWS};1H"
+	movePromptToBottom
 }
 
 drawCells() {
@@ -582,6 +581,9 @@ hold() {
 #  MAIN
 # ======
 
+# Hide user input
+stty -echo
+
 clear
 
 checkXSet
@@ -618,6 +620,7 @@ while true; do
 			clearSide
 			getAltColor 0
 			plot 6 3 1 "GAME OVER"
+			movePromptToBottom
 			sleep 1
 		done	
 		plot $DEFAULT 1 0 $STYLE
@@ -707,9 +710,6 @@ while true; do
 			getOffsets $PIECE $j $ROTATION
 			plot $(($CURSOR_R + $dx)) $(($CURSOR_C + $dy)) $COLOR $STYLE
 		done
-
-		# Clear garbage off the first column
-		clearSide
 	fi
 done
 
