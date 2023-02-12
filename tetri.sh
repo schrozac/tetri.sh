@@ -651,7 +651,7 @@ while true; do
 		case "$key" in
 		    [Ww]) 
 				lowestPosition
-				CURSOR_R=GHOST_R
+				CURSOR_R=$GHOST_R
 				for ((j=0;j<4;j+=1)); do
 					getOffsets $PIECE $j $ROTATION
 					plot $(($CURSOR_R + $dx)) $(($CURSOR_C + $dy)) $COLOR $STYLE
