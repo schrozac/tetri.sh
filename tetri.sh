@@ -274,19 +274,21 @@ checkRotation() {
 }
 
 spinRight() {
-	temp=$((($ROTATION + 1) % 4))
-	checkRotation $temp
-	if [[ $VALID -eq 0 ]]; then
-		ROTATION=$temp
-		LOCK_COUNTER=0
-	fi
+	validateSpin $((($ROTATION + 1) % 4))
+}
+
+spin180() {
+	validateSpin $((($ROTATION + 2) % 4))
 }
 
 spinLeft() {
-	temp=$((($ROTATION + 3) % 4))
-	checkRotation $temp
+	validateSpin $((($ROTATION + 3) % 4))
+}
+
+validateSpin(){
+	checkRotation $1
 	if [[ $VALID -eq 0 ]]; then
-		ROTATION=$temp
+		ROTATION=$1
 		LOCK_COUNTER=0
 	fi
 }
@@ -672,9 +674,7 @@ while true; do
 		    [Dd]) moveRight;;
 			[Kk]) spinLeft;;
 			[Ll]) spinRight;;
-			[\;:])
-				spinRight
-				spinRight;;
+			[\;:]) spin180;;
 			[' '])
 				hold 
 				drawCells
