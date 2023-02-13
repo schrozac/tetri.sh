@@ -672,6 +672,9 @@ while true; do
 		    [Dd]) moveRight;;
 			[Kk]) spinLeft;;
 			[Ll]) spinRight;;
+			[\;:])
+				spinRight
+				spinRight;;
 			[' '])
 				hold 
 				drawCells
