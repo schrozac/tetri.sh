@@ -10,7 +10,8 @@ Unfinished but playable I guess
 + **W** - Hard drop
 + **S** - Soft drop
 + **K**/**L** - CCW/CW rotation
++ **;** - 180deg rotation
 + **Space** - Hold
 
 
-Requires xset to change key repeat rates for smoother controls.
+Having xset recommended to change key repeat rates for smoother controls.
