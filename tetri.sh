@@ -3,6 +3,21 @@
 # ======
 #  INIT
 # ======
+
+NUM_ARGS=$#
+STYLE='[]'
+GHOST_STYLE='||'
+
+if [[ $NUM_ARGS -gt 0 ]]; then
+	STYLE=$1
+fi
+
+if [[ $NUM_ARGS -gt 1 ]]; then
+	GHOST_STYLE=$2
+else
+	GHOST_STYLE=$STYLE
+fi
+
 ROWS=20
 COLS=10
 TOTAL=$((ROWS * COLS))
@@ -46,18 +61,6 @@ LAST_ROTATION=0
 
 LOCK_COUNTER=-1
 LOCK_TIME=8
-
-STYLE='[]'
-if [ $# -gt 0 ]; then
-	STYLE=$1
-
-	# make sure it's exactly 2 chars
-	if [[ ${#STYLE} -gt 2 ]]; then
-		STYLE=${STYLE:0:2}
-	else
-		STYLE=${STYLE}${STYLE}
-	fi
-fi
 
 VALID=1
 
@@ -177,6 +180,15 @@ getSmaller() {
 		SMALLER=$1
 	else
 		SMALLER=$2
+	fi
+}
+
+trim(){
+	TRIMMED=$1
+	if [[ ${#TRIMMED} -gt 2 ]]; then
+		TRIMMED=${TRIMMED:0:2}
+	elif [[ ${#TRIMMED} -lt 2 ]]; then
+		TRIMMED=${TRIMMED}${TRIMMED}
 	fi
 }
 
@@ -590,6 +602,12 @@ hold() {
 #  MAIN
 # ======
 
+trim $GHOST_STYLE
+GHOST_STYLE=$TRIMMED
+
+trim $STYLE
+STYLE=$TRIMMED
+
 # Hide user input
 ORIG_STTY=$(stty -g)
 stty -echo
@@ -710,7 +728,7 @@ while true; do
 				getColor $PIECE
 				getAltColor 0
 				getOffsets $PIECE $j $ROTATION
-				plot $(($GHOST_R + $dx)) $(($CURSOR_C + $dy)) 1 $STYLE
+				plot $(($GHOST_R + $dx)) $(($CURSOR_C + $dy)) 1 $GHOST_STYLE
 			done
 		fi
 
