@@ -49,7 +49,14 @@ LOCK_TIME=8
 
 STYLE='[]'
 if [ $# -gt 0 ]; then
-  STYLE=$1
+	STYLE=$1
+
+	# make sure it's exactly 2 chars
+	if [[ ${#STYLE} -gt 2 ]]; then
+		STYLE=${STYLE:0:2}
+	else
+		STYLE=${STYLE}${STYLE}
+	fi
 fi
 
 VALID=1
