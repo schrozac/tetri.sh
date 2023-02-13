@@ -128,8 +128,8 @@ index() {
 }
 
 # Draw $3 at row $1, col $2
-plot_char(){     
-   	echo -e "\033[${1};${2}H"$3
+plot_char(){
+	echo -e "\033[${1};${2}H"$3
 }
 
 plot() {
@@ -138,9 +138,9 @@ plot() {
 	if [[ $PLOT_C -ge 0 && $PLOT_R -ge 2 ]]; then
 		if [[ $3 -gt 0 ]]; then
 			echo -en "\033[0m\033[1;38;5;${ALT_COLOR}m"
-       		echo -e "\033[$3m\033[${PLOT_R};${PLOT_C}H$4"
+			echo -e "\033[$3m\033[${PLOT_R};${PLOT_C}H$4"
 		else
-       		echo -e "\033[0m\033[${PLOT_R};${PLOT_C}H  "
+			echo -e "\033[0m\033[${PLOT_R};${PLOT_C}H  "
 		fi
 	fi
 }
@@ -584,6 +584,7 @@ hold() {
 # ======
 
 # Hide user input
+ORIG_STTY=$(stty -g)
 stty -echo
 
 clear
@@ -720,3 +721,6 @@ resetKeys
 
 # Reset color
 echo -e "\033(B\033[m"
+
+# Un-hide user input
+stty ${ORIG_STTY}
