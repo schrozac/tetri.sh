@@ -582,6 +582,7 @@ hold() {
 # ======
 
 # Hide user input
+ORIG_STTY=$(stty -g)
 stty -echo
 
 clear
@@ -717,3 +718,6 @@ resetKeys
 
 # Reset color
 echo -e "\033(B\033[m"
+
+# Un-hide user input
+stty ${ORIG_STTY}
