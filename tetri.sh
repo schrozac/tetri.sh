@@ -54,6 +54,8 @@ fi
 
 VALID=1
 
+BAG=()
+BAG_SHUFFLES=20
 
 # ========
 #  PIECES 
@@ -127,7 +129,7 @@ index() {
 
 # Draw $3 at row $1, col $2
 plot_char(){     
-   	echo -e "\E[${1};${2}H"$3
+	echo -e "\033[${1};${2}H"$3
 }
 
 plot() {
@@ -135,16 +137,16 @@ plot() {
 	PLOT_C=$((2 * ($2 + $COL_OFFSET)))
 	if [[ $PLOT_C -ge 0 && $PLOT_R -ge 2 ]]; then
 		if [[ $3 -gt 0 ]]; then
-			echo -en "\e[0m\e[1;38;5;${ALT_COLOR}m"
-	   		echo -e "\e[$3m\E[${PLOT_R};${PLOT_C}H$4"
+			echo -en "\033[0m\033[1;38;5;${ALT_COLOR}m"
+			echo -e "\033[$3m\033[${PLOT_R};${PLOT_C}H$4"
 		else
-	   		echo -e "\e[0m\E[${PLOT_R};${PLOT_C}H  "
+			echo -e "\033[0m\033[${PLOT_R};${PLOT_C}H  "
 		fi
 	fi
 }
 
 drawText() {
-	STR=${TEXT[${1}]}
+	STR="${TEXT[@]:$1:1}"
 	getAltColor 0
 	plot $TEXT_R $TEXT_C 1 "$STR"
 }
@@ -155,7 +157,7 @@ getOffsets() {
 	x=${PIECE_DESCRIPTORS[$((($1 * $DESCRIPTOR_SIZE) + ($2 * 2) + 2))]}
 
 	# Build array of rotations
-	results=(x y y -x -x -y -y x)
+	results=($x $y $y $((x*-1)) $((x*-1)) $((y*-1)) $((y*-1)) $x)
 
 	dx=${results[$(($3 * 2))]}
 	dy=${results[$(($3 * 2 + 1))]}
@@ -311,7 +313,7 @@ getAltColor() {
 }
 
 getColor() {
-	COLOR=${PIECE_DESCRIPTORS[$(($1 * $DESCRIPTOR_SIZE))]}
+	COLOR=${PIECE_DESCRIPTORS[@]:$(( $1*$DESCRIPTOR_SIZE )):1}
 	getAltColor $COLOR
 }
 
@@ -322,20 +324,42 @@ resetPiece() {
 	LOCK_COUNTER=-1
 }
 
+shuffleBag(){
+	for ((j=0;j<300;j+=1)); do
+		swapPair
+	done
+}
+
+swapPair(){
+	index1=$((RANDOM%7))
+	index2=$((RANDOM%7))
+
+	if [ "$index1" = "$index2" ]; then
+		index2=$(( ($index1+1)%7 ))
+	fi
+
+	swapped=${BAG[@]:$index1:1}
+	BAG[$index1]=${BAG[@]:$index2:1}
+	BAG[$index2]=$swapped;
+}
+
 generateNewBag() {
-	for i in `shuf -i "0-$((NUM_PIECES-1))"`; do
+	BAG=(0 1 2 3 4 5 6)
+	shuffleBag
+
+	for i in ${BAG[@]}; do
 		addNextPiece $i
 	done
 }
 
 getNewPiece() {
 	# Get new piece
-	PIECE=${NEXT_PIECES[0]}
+	PIECE=${NEXT_PIECES[@]:0:1}
 	getColor $PIECE
 
 	# Shift next pieces
 	for ((i=1;i<${#NEXT_PIECES[@]};i++)); do
-		NEXT_PIECES[$(($i-1))]=${NEXT_PIECES[$i]}
+		NEXT_PIECES[$(($i-1))]=${NEXT_PIECES[@]:$i:1}
 	done
 	unset NEXT_PIECES[$((${#NEXT_PIECES[@]} - 1))]
 
@@ -349,6 +373,12 @@ addNextPiece() {
 	NEXT_PIECES[${#NEXT_PIECES[@]}]=$1
 }
 
+movePromptToBottom() {
+	T_ROWS=$(tput lines)
+	P_ROWS=$((T_ROWS - 1))
+	echo -e "\033[$((T_ROWS - 1));1H"
+}
+
 solidify() {
 	GAMEOVER=0
 
@@ -356,12 +386,15 @@ solidify() {
 	for ((j=0;j<4;j+=1)); do
 		getOffsets $PIECE $j $ROTATION
 		index $(($CURSOR_R + $dx)) $(($CURSOR_C + $dy))
-		CELLS[$((INDEX))]=$COLOR
 
-		if [[ $GAMEOVER -eq 0 ]] && [[ $INDEX -lt 0 || $INDEX -gt 199 ]]; then
-			GAMEOVER=1
-			NEXT_PIECES=()
-			HOLD_PIECE=-1
+		if [[ $INDEX -lt 0 || $INDEX -gt 199 ]]; then
+			if [[ $GAMEOVER -eq 0 ]]; then
+				GAMEOVER=1
+				NEXT_PIECES=()
+				HOLD_PIECE=-1
+			fi
+		else
+			CELLS[$((INDEX))]=$COLOR
 		fi
 	done
 
@@ -377,7 +410,7 @@ solidify() {
 }
 
 
-moveDown(){
+moveDown() {
 	CURSOR_R=$(($CURSOR_R + 1))
 	for ((j=0;j<4;j+=1)); do
 		getOffsets $PIECE $j $ROTATION
@@ -398,7 +431,7 @@ moveDown(){
 	fi 
 }
 
-clearLine(){
+clearLine() {
 	start=$(($1 * 10 + 9))
 	for ((i=$start;i>=10;i-=1)); do
 		CELLS[$i]=${CELLS[$(($i - 10))]};
@@ -408,7 +441,7 @@ clearLine(){
 	done
 }
 
-clearLines(){
+clearLines() {
 	NUM_CLEARED=0
 	for ((r=0;r<20;r+=1)); do
 		FULL=0
@@ -433,12 +466,6 @@ clearLines(){
 	fi
 }
 
-clearSide() {
-	for ((i=0;i<=$DEFAULT;i+=1)); do
-		plot $i -8 0 $STYLE 
-	done
-}
-
 draw_box() {
 	HORZ="-"
 	VERT="|"
@@ -449,7 +476,7 @@ draw_box() {
 	T_ROWS=`tput lines`        #  Define current terminal dimension 
 	T_COLS=200                                # End checking arguments.
 
-	echo -ne "\E[3${5}m"               # Set box frame color, if defined.
+	echo -ne "\033[3${5}m"               # Set box frame color, if defined.
 
 	count=1                                         #  Draw vertical lines using
 	for (( r=$1; count<=$BOX_HEIGHT; r++)); do      #+ plot_char function.
@@ -481,10 +508,9 @@ draw_box() {
 	plot_char $1 `expr $2 + $BOX_WIDTH` $CORNER_CHAR
 	plot_char `expr $1 + $BOX_HEIGHT` $2 $CORNER_CHAR
 	plot_char `expr $1 + $BOX_HEIGHT` `expr $2 + $BOX_WIDTH` $CORNER_CHAR
-	echo -ne "\E[0m"             #  Restore old colors.
+	echo -ne "\033[0m"             #  Restore old colors.
 
-	P_ROWS=`expr $T_ROWS - 1`    #  Put the prompt at bottom of the terminal.
-	echo -e "\E[${P_ROWS};1H"
+	movePromptToBottom
 }
 
 drawCells() {
@@ -492,7 +518,7 @@ drawCells() {
 	for ((i=0;i<200;i+=1)); do
 		r=$((($i / 10)))
 		c=$((($i % 10)))
-		value=${CELLS[$i]}
+		value=${CELLS[@]:$i:1}
 		if [[ $value -gt 0 ]]; then
 			getAltColor $value
 			plot $r $c $value $STYLE
@@ -527,12 +553,13 @@ drawCells() {
 	# Draw next pieces
 	NEXT_PIECE_OFFSET=3
 	for ((i=0; i < 5 && i < ${#NEXT_PIECES[@]};i+=1)); do
-		getColor ${NEXT_PIECES[$i]}
+		getColor ${NEXT_PIECES[@]:$i:1}
 		for ((j=0;j<4;j+=1)); do
 			getOffsets ${NEXT_PIECES[$i]} $j 0
 			plot $(($NEXT_R + $dx + $(($i * $NEXT_PIECE_OFFSET)))) $(($NEXT_C + $dy)) $COLOR $STYLE
 		done
 	done
+
 	getColor $PIECE
 }
 
@@ -545,6 +572,7 @@ hold() {
 	else
 		getNewPiece
 	fi
+
 	getColor $PIECE
 	lowestPosition
 }
@@ -552,6 +580,10 @@ hold() {
 # ======
 #  MAIN
 # ======
+
+# Hide user input
+ORIG_STTY=$(stty -g)
+stty -echo
 
 clear
 
@@ -586,10 +618,10 @@ while true; do
 		for ((j=0;j<21;j+=1)); do
 			clearLine 20
 			drawCells
-			clearSide
 			getAltColor 0
 			plot 6 3 1 "GAME OVER"
-			sleep 0.05s	
+			movePromptToBottom
+			sleep 1
 		done	
 		plot $DEFAULT 1 0 $STYLE
 		break
@@ -619,13 +651,15 @@ while true; do
 		fi
 
 		plot $DEFAULT 1 0 $STYLE
-		read -s -N 1 -t 0.1 key
+
+		REPLY=''
+		read -s -n 1 -t 1
 
 		# Read keys
-		case "$key" in
+		case $REPLY in
 		    [Ww]) 
 				lowestPosition
-				CURSOR_R=GHOST_R
+				CURSOR_R=$GHOST_R
 				for ((j=0;j<4;j+=1)); do
 					getOffsets $PIECE $j $ROTATION
 					plot $(($CURSOR_R + $dx)) $(($CURSOR_C + $dy)) $COLOR $STYLE
@@ -676,9 +710,6 @@ while true; do
 			getOffsets $PIECE $j $ROTATION
 			plot $(($CURSOR_R + $dx)) $(($CURSOR_C + $dy)) $COLOR $STYLE
 		done
-
-		# Clear garbage off the first column
-		clearSide
 	fi
 done
 
@@ -686,4 +717,7 @@ done
 resetKeys
 
 # Reset color
-echo -e "\e(B\e[m"
+echo -e "\033(B\033[m"
+
+# Un-hide user input
+stty ${ORIG_STTY}
